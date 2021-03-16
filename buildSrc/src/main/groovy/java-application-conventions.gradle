@@ -1,0 +1,36 @@
+plugins {
+    id 'application'
+}
+
+version = '1.0'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+ext {
+    jettyVersion = "9.4.31.v20200723"
+    guavaVersion = "30.1-jre"
+    bcryptVersion = "0.9.0"
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13'
+
+    implementation "org.eclipse.jetty:jetty-server:${jettyVersion}"
+    implementation "org.eclipse.jetty:jetty-servlet:${jettyVersion}"
+    implementation "com.google.guava:guava:${guavaVersion}"
+    implementation "at.favre.lib:bcrypt:${bcryptVersion}"
+}
+
+jar {
+    archiveBaseName = rootProject.name
+}
+
+application {
+    mainClass = 'me.buom.phlox.PhloxServer'
+    applicationDefaultJvmArgs = ['-DmaxThreads=200', '-DminThreads=8', '-DidleTimeout=120', '-Dport=8090']
+    applicationName = rootProject.name
+}
+

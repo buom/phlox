@@ -1,0 +1,2 @@
+rootProject.name = 'phlox'
+include('app')
