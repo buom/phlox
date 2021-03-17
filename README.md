@@ -5,7 +5,7 @@ Phlox is a simple data encryption/decryption service.
 
 #### Encrypt
 ```
-$ curl -XPOST -d 'text' http://HOST:PORT/encrypt
+$ curl -XPOST -d 'random text' http://HOST:PORT/encrypt
 
 WBDTgFTvOf1F8s6cS2mqificKWRujbNHEnHY
 ```
