@@ -18,6 +18,7 @@ import java.nio.charset.Charset;
 import java.security.spec.KeySpec;
 import java.util.Base64;
 
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static me.buom.phlox.PhloxServer.SECRET;
@@ -61,16 +62,31 @@ public class PhloxServerHandler extends AbstractHandler {
         if ("POST".equals(request.getMethod())) {
             if ("/encrypt".equals(target)) {
                 byte[] src = IO.readBytes(request.getInputStream());
-                response.setCharacterEncoding(charset.name());
-                response.getWriter().print(encrypt(src));
+                response.setContentType("text/plain");
+                String dst = encrypt(src);
+                if (dst != null) {
+                    response.getWriter().print(dst);
+                } else {
+                    response.setStatus(SC_BAD_REQUEST);
+                }
             } else if ("/decrypt".equals(target)) {
                 byte[] src = IO.readBytes(request.getInputStream());
-                response.setCharacterEncoding(charset.name());
-                response.getWriter().print(decrypt(src));
+                response.setContentType("application/octet-stream");
+                byte[] dst = decrypt(src);
+                if (dst != null) {
+                    response.getOutputStream().write(dst);
+                } else {
+                    response.setStatus(SC_BAD_REQUEST);
+                }
             } else if ("/hash".equals(target)) {
                 byte[] src = IO.readBytes(request.getInputStream());
-                response.setCharacterEncoding(charset.name());
-                response.getWriter().print(hash(src));
+                response.setContentType("application/octet-stream");
+                byte[] dst = hash(src);
+                if (dst != null) {
+                    response.getOutputStream().write(dst);
+                } else {
+                    response.setStatus(SC_BAD_REQUEST);
+                }
             } else {
                 response.setStatus(SC_NOT_FOUND);
             }
@@ -94,13 +110,12 @@ public class PhloxServerHandler extends AbstractHandler {
         return null;
     }
 
-    private String decrypt(final byte[] src) {
+    private byte[] decrypt(final byte[] src) {
         try {
             Cipher cipher = Cipher.getInstance(ALGO_NAME);
             cipher.init(Cipher.DECRYPT_MODE, secret, new GCMParameterSpec(128, iv));
-            byte[] original = cipher.doFinal(decoder.decode(src));
 
-            return new String(original);
+            return cipher.doFinal(decoder.decode(src));
         } catch (Exception x) {
             x.printStackTrace();
         }
@@ -108,9 +123,9 @@ public class PhloxServerHandler extends AbstractHandler {
         return null;
     }
 
-    private String hash(final byte[] src) {
+    private byte[] hash(final byte[] src) {
         try {
-            return new String(bcrypt.hash(6, salt, src), charset);
+            return bcrypt.hash(6, salt, src);
         } catch (Exception x) {
             x.printStackTrace();
         }
