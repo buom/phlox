@@ -15,6 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.Charset;
+
+import java.security.MessageDigest;
 import java.security.spec.KeySpec;
 import java.util.Base64;
 
@@ -34,7 +36,6 @@ public class PhloxServerHandler extends AbstractHandler {
     private final Base64.Encoder encoder = Base64.getEncoder().withoutPadding();
     private final Base64.Decoder decoder = Base64.getDecoder();
 
-    private final BCrypt.Hasher bcrypt;
     private final byte[] salt;
 
     public PhloxServerHandler() throws Exception {
@@ -48,8 +49,6 @@ public class PhloxServerHandler extends AbstractHandler {
 
         key = new PBEKeySpec(SECRET.toCharArray(), SALT.getBytes(charset), 31556, 128);
         salt = factory.generateSecret(key).getEncoded();
-
-        bcrypt = BCrypt.with(LongPasswordStrategies.hashSha512(BCrypt.Version.VERSION_2A));
     }
 
     @Override
@@ -125,7 +124,32 @@ public class PhloxServerHandler extends AbstractHandler {
 
     private byte[] hash(final byte[] src) {
         try {
+            return bcrypt(src);
+        } catch (Exception x) {
+            x.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private byte[] bcrypt(final byte[] src) {
+        try {
+            BCrypt.Hasher bcrypt = BCrypt.with(LongPasswordStrategies.hashSha512(BCrypt.Version.VERSION_2A));
+
             return bcrypt.hash(6, salt, src);
+        } catch (Exception x) {
+            x.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private byte[] sha512(final byte[] src) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-512");
+            md.update(salt);
+
+            return encoder.encodeToString(md.digest(src)).getBytes();
         } catch (Exception x) {
             x.printStackTrace();
         }
