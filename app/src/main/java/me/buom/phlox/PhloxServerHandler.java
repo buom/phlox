@@ -149,7 +149,7 @@ public class PhloxServerHandler extends AbstractHandler {
             MessageDigest md = MessageDigest.getInstance("SHA-512");
             md.update(salt);
 
-            return encoder.encodeToString(md.digest(src)).getBytes();
+            return encoder.encode(md.digest(src));
         } catch (Exception x) {
             x.printStackTrace();
         }
